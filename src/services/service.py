@@ -25,44 +25,43 @@ async def get_data_from_retailcrm():
     items = []
 
     try:
-        
-        overall_result = httpx.get(f"{URL}?apiKey={API_KEY}").json()["orders"]
-        # for result in overall_result:
-        #     offer_ids = [res["offer"]["id"] for res in result["items"]]
-        #     for offer_id in offer_ids:
-        #         data_result = {
-        #             "offer_id": offer_id,
-        #             "bonusesCreditTotal": result["bonusesCreditTotal"],
-        #             "bonusesChargeTotal": result["bonusesChargeTotal"],
-        #             "externalId": result.get("externalId", []),
-        #             "orderType": result["orderType"],
-        #             "orderMethod": result.get("orderMethod", []),
-        #             "privilegeType": result["privilegeType"], 
-        #             "countryIso": result["countryIso"],
-        #             "createdAt": result["createdAt"],
-        #             "statusUpdatedAt": result["statusUpdatedAt"],
-        #             "summ": result["summ"],
-        #             "totalSumm": result["totalSumm"],
-        #             "prepaySum": result["prepaySum"],
-        #             "purchaseSumm": result["purchaseSumm"],
-        #             "markDatetime": result["markDatetime"],
-        #             "lastName": result.get("lastName", []),
-        #             "firstName": result["firstName"],
-        #             "phone": result.get("phone", []),
-        #             "email": result.get("email", []),
-        #             "call": result["call"],
-        #             "expired": result["expired"],
-        #             "site": result["site"],
-        #             "status": result["status"],
-        #             "fullPaidAt": result.get("fullPaidAt", []),
-        #             "fromApi": result["fromApi"],
-        #             "shipmentStore": result["shipmentStore"],
-        #             "shipped": result["shipped"],
-        #             "currency":  result["currency"]
-        #         }
-        #         data.append(data_result)
 
+        overall_result = httpx.get(f"{URL}?apiKey={API_KEY}").json()["orders"]
         for result in overall_result:
+            offer_ids = [res["offer"]["id"] for res in result["items"]]
+            for offer_id in offer_ids:
+                data_result = {
+                    "offer_id": offer_id,
+                    "bonusesCreditTotal": result["bonusesCreditTotal"],
+                    "bonusesChargeTotal": result["bonusesChargeTotal"],
+                    "externalId": result.get("externalId", []),
+                    "orderType": result["orderType"],
+                    "orderMethod": result.get("orderMethod", []),
+                    "privilegeType": result["privilegeType"], 
+                    "countryIso": result["countryIso"],
+                    "createdAt": result["createdAt"],
+                    "statusUpdatedAt": result["statusUpdatedAt"],
+                    "summ": result["summ"],
+                    "totalSumm": result["totalSumm"],
+                    "prepaySum": result["prepaySum"],
+                    "purchaseSumm": result["purchaseSumm"],
+                    "markDatetime": result["markDatetime"],
+                    "lastName": result.get("lastName", []),
+                    "firstName": result["firstName"],
+                    "phone": result.get("phone", []),
+                    "email": result.get("email", []),
+                    "call": result["call"],
+                    "expired": result["expired"],
+                    "site": result["site"],
+                    "status": result["status"],
+                    "fullPaidAt": result.get("fullPaidAt", []),
+                    "fromApi": result["fromApi"],
+                    "shipmentStore": result["shipmentStore"],
+                    "shipped": result["shipped"],
+                    "currency":  result["currency"]
+                }
+                data.append(data_result)
+
             for res in result["items"]:
                 if res != []:
                     items_result = {
@@ -90,7 +89,7 @@ async def get_data_from_retailcrm():
                         "price": int(str([price["price"] for price in res["prices"]])[1:-1])
                     }
                     items.append(items_result)
-        return items
+        return data, items
         
     except httpx.HTTPError as exc:
         return {"message": f"HTTP Exception for {exc.request.url} - {exc}"}
