@@ -24,46 +24,49 @@ async def get_data_from_retailcrm():
     :return: raw data in json format.
     """
     data = []
-    offer_ids = []
+    items = []
 
     try:
         overall_result = httpx.get(f"{URL}?apiKey={API_KEY}").json()["orders"]
 
         for result in overall_result:
-            _result = (res["offer"]['id'] for res in result["items"])
-            offer_ids.append(_result)
 
-            data_result = {
-                # "offer_id": (res["offer"]["id"] for res in result["items"]),
-                "bonusesCreditTotal": result["bonusesCreditTotal"],
-                "bonusesChargeTotal": result["bonusesChargeTotal"],
-                "externalId": result.get("externalId", []),
-                "orderType": result["orderType"],
-                "orderMethod": result.get("orderMethod", []),
-                "privilegeType": result["privilegeType"], 
-                "countryIso": result["countryIso"],
-                "createdAt": result["createdAt"],
-                "statusUpdatedAt": result["statusUpdatedAt"],
-                "summ": result["summ"],
-                "totalSumm": result["totalSumm"],
-                "prepaySum": result["prepaySum"],
-                "purchaseSumm": result["purchaseSumm"],
-                "markDatetime": result["markDatetime"],
-                "lastName": result.get("lastName", []),
-                "firstName": result["firstName"],
-                "phone": result.get("phone", []),
-                "email": result.get("email", []),
-                "call": result["call"],
-                "expired": result["expired"],
-                "site": result["site"],
-                "status": result["status"],
-                "fullPaidAt": result.get("fullPaidAt", []),
-                "fromApi": result["fromApi"],
-                "shipmentStore": result["shipmentStore"],
-                "shipped": result["shipped"],
-                "currency":  result["currency"]
-            }
-            data.append(data_result)
+            offer_ids = [res["offer"]["id"] for res in result["items"]]
+
+            for offer_id in offer_ids:
+
+                data_result = {
+                    "offer_id": offer_id,
+                    "bonusesCreditTotal": result["bonusesCreditTotal"],
+                    "bonusesChargeTotal": result["bonusesChargeTotal"],
+                    "externalId": result.get("externalId", []),
+                    "orderType": result["orderType"],
+                    "orderMethod": result.get("orderMethod", []),
+                    "privilegeType": result["privilegeType"], 
+                    "countryIso": result["countryIso"],
+                    "createdAt": result["createdAt"],
+                    "statusUpdatedAt": result["statusUpdatedAt"],
+                    "summ": result["summ"],
+                    "totalSumm": result["totalSumm"],
+                    "prepaySum": result["prepaySum"],
+                    "purchaseSumm": result["purchaseSumm"],
+                    "markDatetime": result["markDatetime"],
+                    "lastName": result.get("lastName", []),
+                    "firstName": result["firstName"],
+                    "phone": result.get("phone", []),
+                    "email": result.get("email", []),
+                    "call": result["call"],
+                    "expired": result["expired"],
+                    "site": result["site"],
+                    "status": result["status"],
+                    "fullPaidAt": result.get("fullPaidAt", []),
+                    "fromApi": result["fromApi"],
+                    "shipmentStore": result["shipmentStore"],
+                    "shipped": result["shipped"],
+                    "currency":  result["currency"]
+                }
+                data.append(data_result)
+
         return data
 
         
