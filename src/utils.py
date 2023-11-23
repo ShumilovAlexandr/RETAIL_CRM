@@ -9,13 +9,12 @@ async def get_data_from_retailcrm():
     The router is designed to receive raw data from a third-party API.
 
     :param: None
-    :return: raw data in json format.
+    :return: data in json format.
     """
     data = []
     items = []
 
     try:
-
         overall_result = httpx.get(f"{URL}?apiKey={API_KEY}").json()["orders"]
         for result in overall_result:
             offer_ids = [res["offer"]["id"] for res in result["items"]]
@@ -97,4 +96,5 @@ async def send_data_to_third_party_api(url: str,
         
         await client.post(url, data=data_sent)
 
-        
+
+
