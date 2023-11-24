@@ -1,4 +1,5 @@
 import httpx
+import datetime
 
 from fastapi import (APIRouter, 
                      HTTPException,
@@ -26,12 +27,13 @@ async def extract_data(url):
 
 async def get_big_data():
     """
-    The router will send a large number of requests to receive data.
+    The function is responsible for receiving data.
     """
     data = []
     items = []
     page = 1
 
+    start_func = datetime.datetime.now()
     while True: 
         url = f'{URL}?page={page}&apiKey={API_KEY}'
         full_result = await extract_data(url=url)
@@ -92,7 +94,6 @@ async def get_big_data():
                     "offer_name": res["offer"]["name"],
                     "offer_article": res["offer"]["article"],
                     "offer_vatRate": res["offer"]["vatRate"],
-                    "offer_properties_type": res["offer"]["properties"]["type"],
                     "offer_properties_type": res.get("offer", []).get("properties", []).get("type", []),
                     "offer_unit_code": res["offer"]["unit"]["code"],
                     "offer_unit_name": res["offer"]["unit"]["name"],
@@ -105,7 +106,10 @@ async def get_big_data():
             break
         else:
             page += 1
-    return data, items, page
+    end_func = datetime.datetime.now()
+    func_time = end_func - start_func
+    
+    return data, items, page, func_time
 
 
 @router.post("/send_big_data")
@@ -120,7 +124,7 @@ async def send_data_to_database(user: str,
                                            name=user,
                                            data=data[0])
         return {'status': True,
-                'message': f"Created - {data[2]} repetitions in {data[1]}"}
+                'message': f"Created - {data[2]} repetitions in {data[3]}"}
     except HTTPException as e:
         return {'message': "There's a mistake somewhere! Check the code.",
                 'status': status.HTTP_400_BAD_REQUEST}
@@ -139,7 +143,7 @@ async def send_items_to_database(user: str,
                                            name=user,
                                            data=items[1])
         return {'status': True,
-                'message': f"Created - {items[2]} repetitions in {items[1]}"}
+                'message': f"Created - {items[2]} repetitions in {items[3]}"}
     except HTTPException as e:
         return {'message': "There's a mistake somewhere! Check the code.",
                 'status': status.HTTP_400_BAD_REQUEST}
