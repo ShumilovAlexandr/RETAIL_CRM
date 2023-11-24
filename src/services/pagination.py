@@ -1,12 +1,13 @@
 import httpx
-import asyncio
 
 from fastapi import (APIRouter, 
                      HTTPException,
-                     status)
+                     status, 
+                     Depends)
 
 from settings.config import (API_KEY, 
                              URL)
+from utils import send_data_to_third_party_api
 
 
 
@@ -23,10 +24,7 @@ async def extract_data(url):
     return data
 
 
-
-
-@router.get("/get_b_data")
-async def get_b_data():
+async def get_big_data():
     """
     The router will send a large number of requests to receive data.
     """
@@ -40,72 +38,109 @@ async def get_b_data():
         if not full_result:
             break
 
-        for result in full_result['orders']:
-            # offer_ids = [res["offer"]["id"] for res in result["items"]]
-            # for offer_id in offer_ids:
-            #     data_result = {
-            #         "offer_id": offer_id,
-            #         "bonusesCreditTotal": result["bonusesCreditTotal"],
-            #         "bonusesChargeTotal": result["bonusesChargeTotal"],
-            #         "externalId": result.get("externalId", []),
-            #         "orderType": result["orderType"],
-            #         "orderMethod": result.get("orderMethod", []),
-            #         "privilegeType": result["privilegeType"], 
-            #         "countryIso": result["countryIso"],
-            #         "createdAt": result["createdAt"],
-            #         "statusUpdatedAt": result["statusUpdatedAt"],
-            #         "summ": result["summ"],
-            #         "totalSumm": result["totalSumm"],
-            #         "prepaySum": result["prepaySum"],
-            #         "purchaseSumm": result["purchaseSumm"],
-            #         "markDatetime": result["markDatetime"],
-            #         "lastName": result.get("lastName", []),
-            #         "firstName": result.get("firstName", []),
-            #         "phone": result.get("phone", []),
-            #         "email": result.get("email", []),
-            #         "call": result["call"],
-            #         "expired": result["expired"],
-            #         "site": result["site"],
-            #         "status": result["status"],
-            #         "fullPaidAt": result.get("fullPaidAt", []),
-            #         "fromApi": result["fromApi"],
-            #         "shipmentStore": result["shipmentStore"],
-            #         "shipped": result["shipped"],
-            #         "currency":  result["currency"]
-            #     }
-            #     data.append(data_result)
+        for result in full_result["orders"]:
+            offer_ids = [res["offer"]["id"] for res in result["items"]]
+            for offer_id in offer_ids:
+                data_result = {
+                    "offer_id": offer_id,
+                    "bonusesCreditTotal": result["bonusesCreditTotal"],
+                    "bonusesChargeTotal": result["bonusesChargeTotal"],
+                    "externalId": result.get("externalId", []),
+                    "orderType": result["orderType"],
+                    "orderMethod": result.get("orderMethod", []),
+                    "privilegeType": result["privilegeType"], 
+                    "countryIso": result["countryIso"],
+                    "createdAt": result["createdAt"],
+                    "statusUpdatedAt": result["statusUpdatedAt"],
+                    "summ": result["summ"],
+                    "totalSumm": result["totalSumm"],
+                    "prepaySum": result["prepaySum"],
+                    "purchaseSumm": result["purchaseSumm"],
+                    "markDatetime": result["markDatetime"],
+                    "lastName": result.get("lastName", []),
+                    "firstName": result.get("firstName", []),
+                    "phone": result.get("phone", []),
+                    "email": result.get("email", []),
+                    "call": result["call"],
+                    "expired": result["expired"],
+                    "site": result["site"],
+                    "status": result["status"],
+                    "fullPaidAt": result.get("fullPaidAt", []),
+                    "fromApi": result["fromApi"],
+                    "shipmentStore": result["shipmentStore"],
+                    "shipped": result["shipped"],
+                    "currency":  result["currency"]
+                }
+                data.append(data_result)
 
             for res in result["items"]:
-                if res != []:
-                    items_result = {
-                        "bonusesChargeTotal": res["bonusesChargeTotal"],
-                        "bonusesCreditTotal": res["bonusesCreditTotal"],
-                        "initialPrice": res["initialPrice"],
-                        "discountTotal": res["discountTotal"],
-                        "vatRate": res["vatRate"],
-                        "createdAt": res["createdAt"],
-                        "quantity_1": res["quantity"],
-                        "status": res["status"],
-                        "purchasePrice": res["purchasePrice"],
-                        "ordering": res["ordering"],
-                        "offer_displayName": res["offer"]["displayName"],
-                        "offer_id": res["offer"]["id"],
-                        "offer_externalId": res["offer"]["externalId"],
-                        # "offer_xmlId": res["offer"]["xmlId"],
-                        "offer_name": res["offer"]["name"],
-                        "offer_article": res["offer"]["article"],
-                        "offer_vatRate": res["offer"]["vatRate"],
-                        # "offer_properties_type": res["offer"]["properties"]["type"],
-                        "offer_unit_code": res["offer"]["unit"]["code"],
-                        "offer_unit_name": res["offer"]["unit"]["name"],
-                        "offer_unit_sym": res["offer"]["unit"]["sym"],
-                        "price": float(str([price["price"] for price in res["prices"]])[1:-1])
-                    }
-                    items.append(items_result)
+                items_result = {
+                    "bonusesChargeTotal": res["bonusesChargeTotal"],
+                    "bonusesCreditTotal": res["bonusesCreditTotal"],
+                    "initialPrice": res["initialPrice"],
+                    "discountTotal": res["discountTotal"],
+                    "vatRate": res["vatRate"],
+                    "createdAt": res["createdAt"],
+                    "quantity_1": res["quantity"],
+                    "status": res["status"],
+                    "purchasePrice": res["purchasePrice"],
+                    "ordering": res["ordering"],
+                    "offer_displayName": res["offer"]["displayName"],
+                    "offer_id": res["offer"]["id"],
+                    "offer_externalId": res["offer"]["externalId"],
+                    "offer_xmlId": res.get("offer", []).get("xmlId", []),
+                    "offer_name": res["offer"]["name"],
+                    "offer_article": res["offer"]["article"],
+                    "offer_vatRate": res["offer"]["vatRate"],
+                    "offer_properties_type": res["offer"]["properties"]["type"],
+                    "offer_properties_type": res.get("offer", []).get("properties", []).get("type", []),
+                    "offer_unit_code": res["offer"]["unit"]["code"],
+                    "offer_unit_name": res["offer"]["unit"]["name"],
+                    "offer_unit_sym": res["offer"]["unit"]["sym"],
+                    "price": float(str([price["price"] for price in res["prices"]])[1:-1])
+                }
+                items.append(items_result)
         
         if page == full_result["pagination"]["totalPageCount"]:
             break
         else:
             page += 1
-    print(items)
+    return data, items, page
+
+
+@router.post("/send_big_data")
+async def send_data_to_database(user: str, 
+                                data: dict = Depends(get_big_data)):
+    """
+    The router sends big data to the database.
+    """
+    try:
+        url = 'http://94.241.143.164:8000/docs/site/add_site_data/'
+        await send_data_to_third_party_api(url=url,
+                                           name=user,
+                                           data=data[0])
+        return {'status': True,
+                'message': f"Created - {data[2]} repetitions in {data[1]}"}
+    except HTTPException as e:
+        return {'message': "There's a mistake somewhere! Check the code.",
+                'status': status.HTTP_400_BAD_REQUEST}
+
+
+
+@router.post("/send_big_items")
+async def send_items_to_database(user: str, 
+                                 items: dict = Depends(get_big_data)):
+    """
+    The router sends the big items to the database.
+    """
+    try:
+        url = 'http://94.241.143.164:8000/docs/site/add_site_items/'
+        await send_data_to_third_party_api(url=url,
+                                           name=user,
+                                           data=items[1])
+        return {'status': True,
+                'message': f"Created - {items[2]} repetitions in {items[1]}"}
+    except HTTPException as e:
+        return {'message': "There's a mistake somewhere! Check the code.",
+                'status': status.HTTP_400_BAD_REQUEST}
 
